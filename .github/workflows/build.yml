@@ -223,6 +223,7 @@ jobs:
         kernel_version: ${{ env.KERNEL_VERSION }}
 
     - name: Apply Kernel Branding
+      if: !contains(inputs.repo, 'shusky')
       uses: ./.github/actions/apply-kernel-branding
       with:
         kernel_version: ${{ env.KERNEL_VERSION }}

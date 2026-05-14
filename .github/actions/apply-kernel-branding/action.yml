@@ -27,7 +27,11 @@ runs:
         echo "Getting last commit timestamp from kernel source..."
 
         COMMIT_TIMESTAMP=$(git log -1 --format=%ct 2>/dev/null || echo "$(date +%s)")
-        KERNEL_BUILD_DATE=$(date -u)
+        if [ -n "${KBUILD_BUILD_TIMESTAMP:-}" ]; then
+          KERNEL_BUILD_DATE="$KBUILD_BUILD_TIMESTAMP"
+        else
+          KERNEL_BUILD_DATE=$(date -u)
+        fi
 
         export SOURCE_DATE_EPOCH=$COMMIT_TIMESTAMP
         echo "SOURCE_DATE_EPOCH=$COMMIT_TIMESTAMP" >> $GITHUB_ENV
