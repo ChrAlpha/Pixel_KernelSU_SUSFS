@@ -101,5 +101,29 @@ runs:
       shell: bash
       working-directory: ${{ github.workspace }}/kernel/aosp/KernelSU-Next
       run: |
-        cp ${{ github.workspace }}/kernel_patches/wild/ksun-0daf55582-susfs-v2.1.0-e259e7d6.patch ./
-        patch -p1 < ksun-0daf55582-susfs-v2.1.0-e259e7d6.patch
+        SUSFS_ANDROID_VERSION="${{ inputs.android_version }}"
+        SUSFS_KERNEL_VERSION="${{ inputs.kernel_version }}"
+
+        if [[ "$SUSFS_ANDROID_VERSION" == "android16" && "$SUSFS_KERNEL_VERSION" == "6.1" ]]; then
+          SUSFS_ANDROID_VERSION="android14"
+        fi
+
+        KSU_PATCH_DIR="${{ github.workspace }}/kernel_patches/wild"
+        KSU_PATCH=""
+
+        if [[ "$SUSFS_ANDROID_VERSION" == "android14" && "$SUSFS_KERNEL_VERSION" == "6.1" ]]; then
+          KSU_PATCH=$(ls "$KSU_PATCH_DIR/ksun-${KSU_COMMIT}-susfs-v2.1.0-a14-6.1-"*.patch 2>/dev/null | head -n 1)
+        fi
+
+        if [[ -z "$KSU_PATCH" ]]; then
+          KSU_PATCH=$(ls "$KSU_PATCH_DIR/ksun-${KSU_COMMIT}-susfs-v2.1.0-"*.patch 2>/dev/null | head -n 1)
+        fi
+
+        if [[ -z "$KSU_PATCH" ]]; then
+          echo "No matching KSU SUSFS patch found for KSU_COMMIT=$KSU_COMMIT"
+          ls -1 "$KSU_PATCH_DIR"/ksun-*.patch || true
+          exit 1
+        fi
+
+        cp "$KSU_PATCH" ./
+        patch -p1 < "$(basename "$KSU_PATCH")"
