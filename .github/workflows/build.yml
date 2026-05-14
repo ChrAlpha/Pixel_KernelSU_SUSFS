@@ -115,7 +115,7 @@ jobs:
         set -e
         KERNEL_COMMON_TAG="android14-6.1-2025-12_r9"
         cd "$GITHUB_WORKSPACE/kernel/aosp"
-        git fetch --depth 1 origin "refs/tags/${KERNEL_COMMON_TAG}:refs/tags/${KERNEL_COMMON_TAG}"
+        git fetch --depth 1 https://android.googlesource.com/kernel/common "refs/tags/${KERNEL_COMMON_TAG}:refs/tags/${KERNEL_COMMON_TAG}"
         git checkout -f "${KERNEL_COMMON_TAG}"
 
     - name: Extract Kernel Version and Set File Name
