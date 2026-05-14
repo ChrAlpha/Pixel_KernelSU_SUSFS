@@ -109,6 +109,15 @@ jobs:
       with:
         repo: "${{ inputs.repo }}"
 
+    - name: Align Pixel 8 kernel common tag
+      if: contains(inputs.repo, 'shusky')
+      run: |
+        set -e
+        KERNEL_COMMON_TAG="android14-6.1-2025-12_r9"
+        cd "$GITHUB_WORKSPACE/kernel/aosp"
+        git fetch --depth 1 origin "refs/tags/${KERNEL_COMMON_TAG}:refs/tags/${KERNEL_COMMON_TAG}"
+        git checkout -f "${KERNEL_COMMON_TAG}"
+
     - name: Extract Kernel Version and Set File Name
       id: extract
       run: |
@@ -138,6 +147,20 @@ jobs:
 
         FILE_NAME="$KERNEL_VERSION.$SUBLEVEL-$ANDROID_VERSION"
         echo "FILE_NAME=$FILE_NAME" >> $GITHUB_ENV
+
+    - name: Align Pixel 8 version string and build timestamp
+      if: contains(inputs.repo, 'shusky')
+      run: |
+        # Match Pixel 8 stock kernel string
+        cat >> "$GITHUB_WORKSPACE/wild_gki.fragment" << 'EOF'
+        # Pixel 8 stock version suffix alignment
+        CONFIG_LOCALVERSION="-android14-11-gbd23337e42e7-ab14791245"
+        # CONFIG_LOCALVERSION_AUTO is not set
+        EOF
+
+        # Match build timestamp and build version
+        echo "KBUILD_BUILD_TIMESTAMP=Wed Jan 28 05:34:14 UTC 2026" >> $GITHUB_ENV
+        echo "KBUILD_BUILD_VERSION=1" >> $GITHUB_ENV
 
 
     - name: Apply glibc 2.38 Compatibility Fix

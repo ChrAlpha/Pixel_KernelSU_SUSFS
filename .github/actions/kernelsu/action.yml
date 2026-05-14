@@ -23,7 +23,7 @@ runs:
         REQUESTED_COMMIT="${{ inputs.ksu_commit }}"
         FALLBACK_COMMIT="4c9737a"
 
-        if [ -n "$REQUESTED_COMMIT" ] && git rev-parse --verify "$REQUESTED_COMMIT" >/dev/null 2>&1; then
+        if [ -n "$REQUESTED_COMMIT" ] && git rev-parse --verify "$REQUESTED_COMMIT^{commit}" >/dev/null 2>&1; then
           git checkout "$REQUESTED_COMMIT"
         else
           git checkout "$FALLBACK_COMMIT"
