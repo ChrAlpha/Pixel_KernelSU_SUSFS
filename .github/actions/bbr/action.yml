@@ -15,8 +15,18 @@ runs:
       shell: bash
       working-directory: ${{ github.workspace }}/kernel/aosp
       run: |
-        cp "$GITHUB_WORKSPACE/kernel_patches/bbrv3-${inputs.android_version}-${inputs.kernel_version}.patch" $GITHUB_WORKSPACE/kernel/aosp
-        patch -p1 < "bbrv3-${inputs.android_version}-${inputs.kernel_version}.patch"
+        BBR_ANDROID_VERSION="${{ inputs.android_version }}"
+        BBR_KERNEL_VERSION="${{ inputs.kernel_version }}"
+
+        # Android 16 on 6.1 kernels reuses the Android 14 BBR patch set.
+        if [[ "$BBR_ANDROID_VERSION" == "android16" && "$BBR_KERNEL_VERSION" == "6.1" ]]; then
+          BBR_ANDROID_VERSION="android14"
+        fi
+
+        BBR_PATCH="bbrv3-${BBR_ANDROID_VERSION}-${BBR_KERNEL_VERSION}.patch"
+
+        cp "$GITHUB_WORKSPACE/kernel_patches/$BBR_PATCH" $GITHUB_WORKSPACE/kernel/aosp
+        patch -p1 < "$BBR_PATCH"
 
     - name: Fix modules.bzl
       shell: bash

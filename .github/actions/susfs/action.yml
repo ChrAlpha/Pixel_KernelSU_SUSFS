@@ -17,7 +17,16 @@ runs:
     - name: Setup SUSFS Branch
       shell: bash
       run: |
-        SUSFS_BRANCH="gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}"
+        SUSFS_ANDROID_VERSION="${{ inputs.android_version }}"
+        SUSFS_KERNEL_VERSION="${{ inputs.kernel_version }}"
+
+        # Android 16 on 6.1 kernels currently reuses the Android 14 SUSFS branch.
+        # Upstream only publishes a 6.1 branch for android14, so fall back to it.
+        if [[ "$SUSFS_ANDROID_VERSION" == "android16" && "$SUSFS_KERNEL_VERSION" == "6.1" ]]; then
+          SUSFS_ANDROID_VERSION="android14"
+        fi
+
+        SUSFS_BRANCH="gki-${SUSFS_ANDROID_VERSION}-${SUSFS_KERNEL_VERSION}"
         SUSFS_REPO="https://gitlab.com/simonpunk/susfs4ksu.git"
         
         echo "Preparing SUSFS for branch: $SUSFS_BRANCH"
@@ -75,11 +84,18 @@ runs:
       shell: bash
       working-directory: ${{ github.workspace }}/kernel/aosp
       run: |
+        SUSFS_ANDROID_VERSION="${{ inputs.android_version }}"
+        SUSFS_KERNEL_VERSION="${{ inputs.kernel_version }}"
+
+        if [[ "$SUSFS_ANDROID_VERSION" == "android16" && "$SUSFS_KERNEL_VERSION" == "6.1" ]]; then
+          SUSFS_ANDROID_VERSION="android14"
+        fi
+
         # Apply base SUSFS patches
         cp "${{ github.workspace }}/susfs4ksu/kernel_patches/fs/"* "${{ github.workspace }}/kernel/aosp/fs/"
         cp "${{ github.workspace }}/susfs4ksu/kernel_patches/include/linux/"* "${{ github.workspace }}/kernel/aosp/include/linux/"
-        cp ${{ github.workspace }}/susfs4ksu/kernel_patches/50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch ./
-        patch -p1 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
+        cp "${{ github.workspace }}/susfs4ksu/kernel_patches/50_add_susfs_in_gki-${SUSFS_ANDROID_VERSION}-${SUSFS_KERNEL_VERSION}.patch" ./
+        patch -p1 < "50_add_susfs_in_gki-${SUSFS_ANDROID_VERSION}-${SUSFS_KERNEL_VERSION}.patch" || true
 
     - name: Apply KSU SUSFS Patches
       shell: bash
